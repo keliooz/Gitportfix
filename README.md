@@ -9,9 +9,9 @@ e replanta os commits dela sobre outra branch base — sem copiar e colar códig
 gitportfix/
 ├─ src/GitPortFix/        código do aplicativo (.NET 8, WinForms)
 ├─ installer/             script do Inno Setup
-├─ sandbox/               gerador de repositório de teste — veja sandbox/README.md
-├─ .github/workflows/     CI e publicação de release
-└─ build.ps1              publica o exe e gera o instalador
+├─ .github/workflows/     publicação de release por tag
+├─ build.ps1              publica o exe e gera o instalador
+└─ PUBLICAR.md            passo a passo de subir ao GitHub e testar
 ```
 
 ## Testar sem arriscar código de verdade
