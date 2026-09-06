@@ -273,7 +273,54 @@ public sealed class MainForm : Form
         _cmbCorrecao.TextChanged += (_, _) => SugerirNomeDaNovaBranch();
         _cmbBaseDestino.TextChanged += (_, _) => SugerirNomeDaNovaBranch();
 
-        FormClosing += (_, _) => { _varredura?.Cancel(); GuardarConfig(); };
+        FormClosing += async (_, e) => await AoFecharAsync(e);
+    }
+
+    // Evita reentrância: sem isso, o Close() chamado lá dentro dispara o
+    // FormClosing de novo e o app fica perguntando a mesma coisa em loop.
+    private bool _fechamentoLiberado;
+
+    private async Task AoFecharAsync(FormClosingEventArgs e)
+    {
+        if (_fechamentoLiberado) return;
+
+        e.Cancel = true;
+        _varredura?.Cancel();
+
+        var repoValido = !string.IsNullOrWhiteSpace(_git.RepoPath) && await _git.IsRepositoryAsync();
+
+        if (repoValido && await _git.IsOperationInProgressAsync())
+        {
+            var resposta = MessageBox.Show(
+                "Existe um rebase ou cherry-pick em andamento neste repositório.\n\n" +
+                "Fechar o GitPortFix agora vai abortar essa operação — qualquer conflito " +
+                "que você já tenha resolvido na mão será descartado, e o repositório " +
+                "volta ao estado de antes de você clicar em \"Levar para a base de destino\".\n\n" +
+                "Abortar e fechar mesmo assim?",
+                "Operação em andamento", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+            if (resposta != DialogResult.Yes)
+            {
+                // Mantém a janela aberta. O usuário pode preferir resolver e
+                // continuar depois, ou terminar pelo terminal antes de sair.
+                return;
+            }
+
+            UsarEspera(true, "Abortando a operação pendente...");
+            try
+            {
+                var r = await _git.RunAsync("rebase --abort");
+                if (!r.Ok) await _git.RunAsync("cherry-pick --abort");
+            }
+            finally
+            {
+                UsarEspera(false);
+            }
+        }
+
+        GuardarConfig();
+        _fechamentoLiberado = true;
+        Close();
     }
 
     // ------------------------------------------------------------------ projeto
