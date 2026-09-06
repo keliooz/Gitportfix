@@ -3,8 +3,6 @@
 Aplicativo Windows que pega a sua branch de correção, criada a partir de uma branch base,
 e replanta os commits dela sobre outra branch base — sem copiar e colar código.
 
-![build](https://github.com/SEU-USUARIO/gitportfix/actions/workflows/build.yml/badge.svg)
-
 ## Estrutura do repositório
 
 ```
