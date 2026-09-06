@@ -1,0 +1,13 @@
+# Build
+bin/
+obj/
+dist/
+*.user
+*.suo
+.vs/
+
+# Sandbox de testes: gerado por script, nunca versionado
+sandbox/.sandbox/
+
+# Preferencias locais
+*.DotSettings.user

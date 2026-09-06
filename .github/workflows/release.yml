@@ -1,0 +1,66 @@
+name: release
+
+# Dispara ao empurrar uma tag de versão: git tag v1.0.0 && git push origin v1.0.0
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      versao:
+        description: 'Versão a publicar (ex: 1.0.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    name: Gerar instalador e publicar
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Descobrir a versão
+        id: versao
+        shell: pwsh
+        run: |
+          $v = if ($env:GITHUB_REF_NAME -match '^v') {
+            $env:GITHUB_REF_NAME.TrimStart('v')
+          } else {
+            '${{ github.event.inputs.versao }}'
+          }
+          "numero=$v" >> $env:GITHUB_OUTPUT
+          Write-Host "Versão: $v"
+
+      - name: Instalar o Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Publicar e empacotar
+        shell: pwsh
+        run: ./build.ps1 -Instalador -Versao ${{ steps.versao.outputs.numero }}
+
+      - name: Publicar o release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: GitPortFix ${{ steps.versao.outputs.numero }}
+          generate_release_notes: true
+          files: |
+            dist/GitPortFix-Setup-${{ steps.versao.outputs.numero }}.exe
+            bin/publish/GitPortFix.exe
+          body: |
+            ## Instalação
+
+            Baixe o `GitPortFix-Setup-*.exe` e execute. Não pede senha de administrador.
+
+            Quem preferir não instalar pode baixar o `GitPortFix.exe` avulso e rodar direto.
+
+            **Requisito:** Git instalado e no PATH.
+
+            > O Windows SmartScreen provavelmente vai avisar que o publicador é
+            > desconhecido, porque o executável não é assinado digitalmente.
+            > Clique em "Mais informações" e depois em "Executar assim mesmo".
