@@ -16,7 +16,7 @@ gitportfix/
 
 ## Testar sem arriscar código de verdade
 
-Existe um repositório de teste separado, chamado `loja-teste`, com quatro branches já
+Existe um repositório de teste separado, chamado [`loja-teste`](https://github.com/keliooz/loja-teste), com quatro branches já
 prontas (`main`, `release-candidate`, `hotfix` e `correcao/BUG-1234`) simulando um bug
 real e o cenário exato que o GitPortFix resolve. Veja o passo a passo completo em
 [PUBLICAR.md](PUBLICAR.md#testando).
